@@ -271,10 +271,11 @@ const Container = styled.div`
 
 const OrderInfoContainer = styled.div`
   position: fixed;
-  bottom: 0;
+  bottom: 5;
   left: 0;
   width: 100%;
-  height: ${({ isExpanded }) => (isExpanded ? '60%' : '20%')};
+  margin-bottom: 50px;
+  height: ${({ isExpanded }) => (isExpanded ? '70%' : '20%')};
   background-color: white;
   box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.2);
   border-top-left-radius: 15px;
@@ -291,7 +292,7 @@ const OrderInfo = styled.div`
   padding: 20px;
   width: 100%;
   overflow-y: auto;
-  margin-bottom: 50px;
+
 `;
 
 const DragHandle = styled.div`
