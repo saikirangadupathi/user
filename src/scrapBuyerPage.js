@@ -271,7 +271,7 @@ const Container = styled.div`
 
 const OrderInfoContainer = styled.div`
   position: fixed;
-  bottom: 5;
+  bottom: 10;
   left: 0;
   width: 100%;
   margin-bottom: 50px;
