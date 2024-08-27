@@ -274,8 +274,8 @@ const OrderInfoContainer = styled.div`
   bottom: 10;
   left: 0;
   width: 100%;
-  margin-bottom: 50px;
-  height: ${({ isExpanded }) => (isExpanded ? '70%' : '20%')};
+  margin-bottom: 100px;
+  height: ${({ isExpanded }) => (isExpanded ? '80%' : '20%')};
   background-color: white;
   box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.2);
   border-top-left-radius: 15px;
