@@ -267,15 +267,19 @@ const Container = styled.div`
   height: 100vh;
   position: relative;
   overflow: hidden;
+
+  @media (max-width: 768px) {
+    height: 100vh;
+    padding-bottom: 60px;
+  }
 `;
 
 const OrderInfoContainer = styled.div`
   position: fixed;
-  bottom: 10;
+  bottom: 0;
   left: 0;
   width: 100%;
-  margin-bottom: 100px;
-  height: ${({ isExpanded }) => (isExpanded ? '80%' : '20%')};
+  height: ${({ isExpanded }) => (isExpanded ? '70%' : '20%')};
   background-color: white;
   box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.2);
   border-top-left-radius: 15px;
@@ -286,6 +290,14 @@ const OrderInfoContainer = styled.div`
   flex-direction: column;
   justify-content: flex-start;
   transition: height 0.3s ease-in-out;
+
+  @media (max-width: 768px) {
+    height: ${({ isExpanded }) => (isExpanded ? '80%' : '20%')};
+  }
+
+  @media (max-width: 480px) {
+    height: ${({ isExpanded }) => (isExpanded ? '70%' : '20%')};
+  }
 `;
 
 const OrderInfo = styled.div`
@@ -293,6 +305,13 @@ const OrderInfo = styled.div`
   width: 100%;
   overflow-y: auto;
 
+  @media (max-width: 768px) {
+    padding: 15px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 10px;
+  }
 `;
 
 const DragHandle = styled.div`
@@ -302,6 +321,11 @@ const DragHandle = styled.div`
   border-radius: 2.5px;
   margin: 10px auto;
   cursor: ns-resize;
+
+  @media (max-width: 480px) {
+    width: 75px;
+    height: 4px;
+  }
 `;
 
 const NextButton = styled.button`
@@ -318,6 +342,16 @@ const NextButton = styled.button`
   &:hover {
     background-color: #45a049;
   }
+
+  @media (max-width: 768px) {
+    padding: 8px;
+    font-size: 14px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 6px;
+    font-size: 12px;
+  }
 `;
 
 const ButtonWrapper = styled.div`
@@ -326,10 +360,18 @@ const ButtonWrapper = styled.div`
   align-items: center;
   width: 100%;
   margin-top: 20px;
+
+  @media (max-width: 768px) {
+    margin-top: 15px;
+  }
+
+  @media (max-width: 480px) {
+    margin-top: 10px;
+  }
 `;
 
 const BackButton = styled.button`
-  background-color: #B2BEB5;
+  background-color: #b2beb5;
   color: white;
   border: none;
   padding: 10px;
@@ -340,7 +382,17 @@ const BackButton = styled.button`
   font-size: 16px;
 
   &:hover {
-    background-color: #45a049;
+    background-color: #a9a9a9;
+  }
+
+  @media (max-width: 768px) {
+    padding: 8px;
+    font-size: 14px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 6px;
+    font-size: 12px;
   }
 `;
 
@@ -351,6 +403,14 @@ const ConfirmScrapBuyer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+
+  @media (max-width: 768px) {
+    padding: 15px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 10px;
+  }
 `;
 
 const BuyerOption = styled.div`
@@ -370,6 +430,14 @@ const BuyerOption = styled.div`
   &:hover {
     border: 2px solid #4caf50;
   }
+
+  @media (max-width: 768px) {
+    padding: 12px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 10px;
+  }
 `;
 
 const Label1 = styled.label`
@@ -383,13 +451,14 @@ const Label1 = styled.label`
     font-weight: bold;
     color: #000;
   }
-`;
 
-const Label = styled.label`
-  font-size: 16px;
-  color: #333;
-  flex-grow: 1;
-  margin-right: 10px;
+  @media (max-width: 768px) {
+    font-size: 14px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 12px;
+  }
 `;
 
 const RadioInput = styled.input`
@@ -438,8 +507,17 @@ const RadioInput = styled.input`
   &:hover {
     border-color: #4caf50;
   }
-`;
 
+  @media (max-width: 768px) {
+    width: 18px;
+    height: 18px;
+  }
+
+  @media (max-width: 480px) {
+    width: 16px;
+    height: 16px;
+  }
+`;
 
 const ConfirmPickupButton = styled.button`
   background-color: #4caf50;
@@ -455,6 +533,16 @@ const ConfirmPickupButton = styled.button`
   &:hover {
     background-color: #45a049;
   }
+
+  @media (max-width: 768px) {
+    padding: 8px;
+    font-size: 14px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 6px;
+    font-size: 12px;
+  }
 `;
 
 const Detail = styled.div`
@@ -468,27 +556,61 @@ const Detail = styled.div`
     flex-shrink: 0;
     margin-right: 10px;
   }
+
+  @media (max-width: 768px) {
+    font-size: 13px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 12px;
+  }
 `;
 
 const Footer = styled.div`
   background-color: #fff;
   z-index: 1000;
   width: 100%;
-  padding: 10px;
+  padding: 8px;
   box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
   position: fixed;
   bottom: 0;
+
+  @media (max-width: 768px) {
+    padding: 6px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 4px;
+  }
 `;
 
 const ImageList = styled.div`
   display: flex;
   flex-wrap: wrap;
   margin-top: 10px;
+
+  @media (max-width: 768px) {
+    justify-content: space-around;
+  }
+
+  @media (max-width: 480px) {
+    justify-content: space-between;
+  }
 `;
 
 const ImageItem = styled.div`
   margin-right: 10px;
   margin-bottom: 10px;
+
+  @media (max-width: 768px) {
+    margin-right: 8px;
+    margin-bottom: 8px;
+  }
+
+  @media (max-width: 480px) {
+    margin-right: 5px;
+    margin-bottom: 5px;
+  }
 `;
 
 const PopupContent = styled.div`
@@ -508,6 +630,22 @@ const PopupContent = styled.div`
 
     &:hover {
       background-color: #45a049;
+    }
+  }
+
+  @media (max-width: 768px) {
+    font-size: 11px;
+
+    button {
+      padding: 4px 8px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    font-size: 10px;
+
+    button {
+      padding: 3px 6px;
     }
   }
 `;
