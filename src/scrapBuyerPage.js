@@ -276,7 +276,7 @@ const Container = styled.div`
 
 const OrderInfoContainer = styled.div`
   position: fixed;
-  bottom: 0;
+  bottom: 100;
   left: 0;
   width: 100%;
   height: ${({ isExpanded }) => (isExpanded ? '70%' : '20%')};
