@@ -291,6 +291,7 @@ const OrderInfo = styled.div`
   padding: 20px;
   width: 100%;
   overflow-y: auto;
+  margin-bottom: 50px;
 `;
 
 const DragHandle = styled.div`
