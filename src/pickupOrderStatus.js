@@ -6,6 +6,10 @@ import Map, { Marker, Source, Layer } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import axios from 'axios';
 
+import BackArrow from './back.png';
+
+import Support from './support.png';
+
 const mapboxAccessToken = 'pk.eyJ1IjoiZ3NhaXRlamEwMDEiLCJhIjoiY2x5a3MyeXViMDl3NjJqcjc2OHQ3NTVoNiJ9.b5q6xpWN2yqeaKTaySgcBQ';
 
 const truckIconUrl = './truck.png';
@@ -27,7 +31,13 @@ const PickupOrderStatus = ({ cancelOrder }) => {
   const [customerLocation, setCustomerLocation] = useState(null);
   const [agentLocation, setAgentLocation] = useState(null);
   const [routeData, setRouteData] = useState(null);
-  const [orderStatus, setOrderStatus] = useState('scheduled');
+  const [orderStatus, setOrderStatus] = useState('');
+
+  const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
+
+  const toggleSupportModal = () => {
+    setIsSupportModalOpen(!isSupportModalOpen);
+  };
 
   useEffect(() => {
     const fetchOrderStatus = async () => {
@@ -105,7 +115,7 @@ const PickupOrderStatus = ({ cancelOrder }) => {
   };
 
   const isCompleted = (status) => {
-    const statusOrder = ['scheduled', 'approved', 'in-progress', 'at-doorstep'];
+    const statusOrder = ['scheduled', 'approved','Pending', 'in Progress', 'completed'];
     return statusOrder.indexOf(orderStatus) >= statusOrder.indexOf(status);
   };
 
@@ -113,19 +123,23 @@ const PickupOrderStatus = ({ cancelOrder }) => {
     return orderInfo.cart.reduce((total, item) => total + item.quantity * item.price, 0);
   };
 
+
+  
+
   return (
     <Container>
       <Content>
-        <Header>
-          <BackButton onClick={() => navigate(-1)}>&lt;</BackButton>
+      <Header>
+          <StyledBackArrow src={BackArrow} alt="Back" onClick={() => navigate(-1)} />
+          <SupportIcon src={Support} alt="Support" onClick={toggleSupportModal} />
         </Header>
         <StatusContainer>
           <PackageId>Package ID: {orderInfo.Id || 'N/A'}</PackageId>
           <StatusList>
-            <StatusItem $completed={isCompleted('scheduled')}>Pickup placed</StatusItem>
-            <StatusItem $completed={isCompleted('approved')}>Pickup Approved</StatusItem>
-            <StatusItem $completed={isCompleted('in-progress')}>Pickup Truck near you</StatusItem>
-            <StatusItem $completed={isCompleted('at-doorstep')} $pulsating={isCompleted('at-doorstep')}>Pickup is at your Doorstep</StatusItem>
+            <StatusItem $completed={isCompleted('scheduled')}>Pickup scheduled</StatusItem>
+            <StatusItem $completed={isCompleted('Pending')}>Pickup Approved</StatusItem>
+            <StatusItem $completed={isCompleted('in Progress')}>Pickup Truck near you</StatusItem>
+            <StatusItem $completed={isCompleted('completed')} $pulsating={isCompleted('completed')}>Pickup completed</StatusItem>
           </StatusList>
         </StatusContainer>
         <OrderDetails>
@@ -148,9 +162,32 @@ const PickupOrderStatus = ({ cancelOrder }) => {
       </Content>
       <Footer>
         <FooterButton onClick={handlePickUpClick}>Market price</FooterButton>
-        <FooterButton onClick={handleCancelOrder}>Cancel Order</FooterButton>
         <FooterButton onClick={handleTrackOrderClick}>Track Your Pickup</FooterButton>
       </Footer>
+      <SupportModalContainer
+        isOpen={isSupportModalOpen}
+        onRequestClose={toggleSupportModal}
+        contentLabel="Support Options"
+        style={{
+          overlay: {
+            backgroundColor: 'transparent',
+          },
+          content: {
+            top: '50px',        // Positioned 40px from the top of the viewport
+            right: '10px',      // Positioned near the right edge of the viewport
+            bottom: 'auto',
+            left: 'auto',
+            transform: 'none',  // Remove any translate transformations
+            padding: '0',
+            width: '150px',
+            borderRadius: '10px',
+            boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)',
+          },
+        }}
+      >
+        <ModalOption onClick={() => { /* Handle Help click */ }}>Help</ModalOption>
+        <ModalOption onClick={handleCancelOrder}>Cancel Order</ModalOption>
+      </SupportModalContainer>
       <Modal
         isOpen={isModalOpen}
         onRequestClose={handleCloseModal}
@@ -205,28 +242,35 @@ const PickupOrderStatus = ({ cancelOrder }) => {
         <CloseButton onClick={handleCloseModal}>Close</CloseButton>
       </Modal>
       <Modal
-        isOpen={isConfirmModalOpen}
-        onRequestClose={handleCloseConfirmModal}
-        contentLabel="Confirm Cancel Order"
-        style={{
-          content: {
-            top: '50%',
-            left: '50%',
-            right: 'auto',
-            bottom: 'auto',
-            marginRight: '-50%',
-            transform: 'translate(-50%, -50%)',
-            width: '40%',
-            height: '20%',
-          },
-        }}
-      >
-        <ConfirmText>Are you sure you want to cancel this order?</ConfirmText>
-        <ButtonContainer>
-          <ConfirmButton onClick={confirmCancelOrder}>Yes</ConfirmButton>
-          <CancelButton onClick={handleCloseConfirmModal}>No</CancelButton>
-        </ButtonContainer>
-      </Modal>
+              isOpen={isConfirmModalOpen}
+              onRequestClose={handleCloseConfirmModal}
+              contentLabel="Confirm Cancel Order"
+              style={{
+                overlay: {
+                  backgroundColor: 'rgba(0, 0, 0, 0.75)', // Dark semi-transparent overlay
+                },
+                content: {
+                  top: '50%',
+                  left: '50%',
+                  right: 'auto',
+                  bottom: 'auto',
+                  transform: 'translate(-50%, -50%)',
+                  width: '50%', // Adjusted width for a better visual balance
+                  padding: '10px',
+                  borderRadius: '12px', // Softer rounded corners
+                  boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)', // Deeper shadow for a floating effect
+                  backgroundColor: '#f9f9f9', // Soft background color
+                  border: 'none',
+                },
+              }}
+            >
+              <ConfirmText>Are you sure you want to cancel this order?</ConfirmText>
+              <ButtonContainer>
+                <ConfirmButton onClick={confirmCancelOrder}>Yes</ConfirmButton>
+                <CancelButton onClick={handleCloseConfirmModal}>No</CancelButton>
+              </ButtonContainer>
+            </Modal>
+
     </Container>
   );
 };
@@ -234,28 +278,13 @@ const PickupOrderStatus = ({ cancelOrder }) => {
 export default PickupOrderStatus
 
 
-const pulsate = keyframes`
-  0% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.1);
-    opacity: 0.7;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-`;
-
 const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
   height: 100vh;
-  background-color: #f3f2f8;
+  background: linear-gradient(135deg, #f3f2f8 0%, #e0e0e0 100%);
   padding: 20px;
   box-sizing: border-box;
   overflow: hidden;
@@ -273,16 +302,86 @@ const Content = styled.div`
 
 const Header = styled.div`
   display: flex;
+  min-height: 34px;
   justify-content: space-between;
   width: 100%;
   padding: 10px 0;
+  position: fixed;
+  top: 0;
+  background: linear-gradient(135deg, #4b79a1 0%, #283e51 100%);
+  padding: 8px 0;
+  box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.3);
+  z-index: 1100;
 `;
 
-const BackButton = styled.button`
-  background: none;
-  border: none;
-  font-size: 24px;
+const SupportIcon = styled.img`
+  width: 34px;
+  height: 34px;
+  margin-right: 10px;
   cursor: pointer;
+  transition: transform 0.3s ease;
+
+  &:hover {
+    transform: scale(1.2);
+  }
+`;
+
+const SupportModalContainer = styled(Modal)`
+  position: absolute;
+  top: 50px;
+  right: 10px;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  padding: 15px;
+  width: 150px;
+  z-index: 1000;
+`;
+
+const ModalOption = styled.div`
+  padding: 10px;
+  font-size: 16px;
+  cursor: pointer;
+  color: #333;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: #f0f0f0;
+  }
+
+  &:not(:last-child) {
+    border-bottom: 1px solid #ddd;
+  }
+`;
+
+const StyledBackArrow = styled.img`
+  width: 34px;
+  height: 34px;
+  margin-left: 5px;
+  color: whitesmoke;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+
+  &:hover {
+    transform: scale(1.2);
+  }
+`;
+
+
+
+const pulsate = keyframes`
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 `;
 
 const ProfileButton = styled.button`
@@ -290,22 +389,29 @@ const ProfileButton = styled.button`
   border: none;
   font-size: 24px;
   cursor: pointer;
+  color: #4b4b4b;
+  transition: color 0.3s ease;
+
+  &:hover {
+    color: #1a73e8;
+  }
 `;
 
 const StatusContainer = styled.div`
   background-color: #ffffff;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 15px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
   width: 100%;
-  max-width: 400px;
-  padding: 20px;
+  max-width: 450px;
+  padding: 25px;
   margin-top: 20px;
 `;
 
 const PackageId = styled.div`
-  font-size: 16px;
+  font-size: 18px;
   font-weight: bold;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
+  color: #333;
 `;
 
 const StatusList = styled.div`
@@ -316,31 +422,31 @@ const StatusList = styled.div`
 
 const StatusItem = styled.div`
   font-size: 18px;
-  color: ${props => (props.$completed ? 'green' : 'gray')};
+  color: ${props => (props.$completed ? '#4caf50' : '#bbb')};
   position: relative;
-  padding-left: 30px;
+  padding-left: 35px;
   margin-bottom: 20px;
-  animation: ${props => (props.$pulsating ? pulsate : 'none')} 1.5s infinite;
 
   &:before {
     content: '';
     position: absolute;
     left: 0;
     top: 4px;
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
-    background-color: ${props => (props.$completed ? 'green' : 'gray')};
+    background-color: ${props => (props.$completed ? '#4caf50' : '#bbb')};
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   }
 
   &:after {
     content: '';
     position: absolute;
-    left: 9px;
+    left: 11px;
     top: 25px;
     width: 2px;
     height: 40px;
-    background-color: ${props => (props.$completed ? 'green' : 'gray')};
+    background-color: ${props => (props.$completed ? '#4caf50' : '#bbb')};
     display: ${props => (props.$completed ? 'block' : 'none')};
   }
 
@@ -349,13 +455,14 @@ const StatusItem = styled.div`
   }
 `;
 
+
 const OrderDetails = styled.div`
   background-color: #ffffff;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 15px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
   width: 100%;
-  max-width: 400px;
-  padding: 20px;
+  max-width: 450px;
+  padding: 25px;
   margin-top: 20px;
   display: flex;
   flex-direction: column;
@@ -365,28 +472,32 @@ const DetailContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  padding: 30px;
+  padding: 20px;
   background-color: #f9f9f9;
-  border-left: 5px solid #4caf50;
+  border-left: 6px solid #4caf50;
   margin-bottom: 20px;
+  border-radius: 10px;
 `;
 
 const Detail = styled.div`
   font-size: 16px;
   margin-bottom: 10px;
   font-weight: bold;
+  color: #444;
 `;
 
 const MaterialsContainer = styled.div`
-  padding: 10px;
+  padding: 15px;
   background-color: #f1f1f1;
-  border-left: 5px solid #4caf50;
+  border-left: 6px solid #4caf50;
+  border-radius: 10px;
 `;
 
 const MaterialsHeader = styled.div`
   font-size: 16px;
   font-weight: bold;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
+  color: #333;
 `;
 
 const MaterialsList = styled.ul`
@@ -395,59 +506,66 @@ const MaterialsList = styled.ul`
   margin: 0;
 `;
 
-const TotalPrice = styled.li`
+const MaterialItem = styled.li`
   font-size: 16px;
-  padding: 5px 0;
-  border-bottom: 1px solid #e0e0e0;
+  padding: 10px 0;
+  border-bottom: 1px solid #ddd;
+  color: #555;
 
   &:last-child {
     border-bottom: none;
   }
 `;
 
-
-
-const MaterialItem = styled.li`
+const TotalPrice = styled.li`
   font-size: 16px;
-  padding: 5px 0;
-  border-bottom: 1px solid #e0e0e0;
-
-  &:last-child {
-    border-bottom: none;
-  }
+  padding: 10px 0;
+  font-weight: bold;
+  color: #000;
 `;
 
 const Footer = styled.div`
   display: flex;
   justify-content: space-around;
   width: 100%;
-  max-width: 400px;
   position: fixed;
   bottom: 0;
-  background-color: #fff;
-  padding: 10px 0;
+  background: linear-gradient(135deg, #4b79a1 0%, #283e51 100%);
+  padding: 8px 0;
+  box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.3);
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
 `;
 
 const FooterButton = styled.button`
-  background: none;
+  background: linear-gradient(135deg, #d0f5d3 0%, #d0f5d3 100%);
   border: none;
   font-size: 16px;
-  color: #4b4b4b;
+  font-weight: bold;
+  color: black;
+  margin: 12px;
   cursor: pointer;
-  padding: 10px 20px;
-  border-radius: 5px;
-  transition: background-color 0.3s ease;
+  padding: 12px 16px;
+  border-radius: 20px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 
   &:hover {
-    background-color: #dcdcdc;
+    background: linear-gradient(135deg, #ff6a3d 0%, #fe8c71 100%);
+    transform: translateY(-3px);
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 `;
+
 
 const CloseButton = styled.button`
   background: none;
   border: none;
   font-size: 16px;
-  color: #4b4b4b;
+  color: #333;
   cursor: pointer;
   padding: 10px 20px;
   border-radius: 5px;
@@ -457,7 +575,7 @@ const CloseButton = styled.button`
   right: 10px;
 
   &:hover {
-    background-color: #dcdcdc;
+    background-color: #f2f2f2;
   }
 `;
 
@@ -465,6 +583,7 @@ const ConfirmText = styled.p`
   font-size: 18px;
   text-align: center;
   margin-bottom: 20px;
+  color: #333;
 `;
 
 const ButtonContainer = styled.div`
@@ -480,10 +599,16 @@ const ConfirmButton = styled.button`
   border-radius: 5px;
   padding: 10px 20px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 
   &:hover {
     background-color: #45a049;
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 `;
 
@@ -494,11 +619,19 @@ const CancelButton = styled.button`
   border-radius: 5px;
   padding: 10px 20px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 
   &:hover {
     background-color: #e53935;
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 `;
+
+
 
 Modal.setAppElement('#root');
