@@ -204,14 +204,14 @@ const Container = styled.div`
 
 const Form = styled.div`
   background-color: white;
-  padding: 40px 20px;
+  padding: 10px 8px;
   border-radius: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 100%;
   max-width: 400px;
-  margin-bottom: 100px;
+  margin-bottom: 70px;
 `;
 
 const UsernameInput = styled.input`
@@ -219,7 +219,7 @@ const UsernameInput = styled.input`
   padding: 15px;
   border-radius: 30px;
   border: none;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   font-size: 16px;
 `;
 
@@ -228,7 +228,7 @@ const PasswordInput = styled.input`
   padding: 15px;
   border-radius: 30px;
   border: none;
-  margin-bottom: 20px;
+  margin-bottom: 8px;
   font-size: 16px;
 `;
 
@@ -236,7 +236,7 @@ const LoginButton = styled.button`
   width: 100%;
   background-color: #8ce08a;
   color: black;
-  padding: 15px;
+  padding: 10px;
   border: none;
   border-radius: 30px;
   cursor: pointer;
@@ -246,7 +246,7 @@ const LoginButton = styled.button`
 
 const Or = styled.p`
   color: white;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
   font-size: 16px;
 `;
 
@@ -282,13 +282,13 @@ const ModalContent = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px;
+  padding: 10px;
 `;
 
 const SignupInput = styled.input`
   width: 100%;
   padding: 10px;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
   border-radius: 5px;
   border: 1px solid #cccccc;
   font-size: 16px;
@@ -316,6 +316,6 @@ const customStyles = {
     width: '90%',
     maxWidth: '400px',
     borderRadius: '20px',
-    padding: '20px',
+    padding: '12px',
   },
 };
