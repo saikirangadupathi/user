@@ -6,8 +6,8 @@ import axios from 'axios';
 import LocationPicker from './LocationPicker';
 import Modal from 'react-modal';
 import RecyclingSymbol from './recycling.png'; // Adjust the path accordingly
-import BackgroundImage from './greenCyclelogo.png';
-import SplashScreenVideo from './recycleScreen.mp4';
+import BackgroundImage from './greenCyclelogo.jpg';
+import SplashScreenVideo from './recyleSplashScreen.MP4';
 import GoogleIcon from './google.png';
 
 Modal.setAppElement('#root'); // Required for accessibility
@@ -98,11 +98,20 @@ const Login = () => {
 
   if (isLoading) {
     return (
-      <SplashScreen>
-        <video autoPlay muted>
-          <source src={SplashScreenVideo} type="video/mp4" />
-        </video>
-      </SplashScreen>
+      <SplashScreen style={{ width: '100vw', height: '100vh', overflow: 'hidden' }}>
+          <video 
+            autoPlay 
+            muted 
+            style={{ 
+              width: '100%', 
+              height: '100%', 
+              objectFit: 'cover' 
+            }}
+          >
+            <source src={SplashScreenVideo} type="video/mp4" />
+          </video>
+        </SplashScreen>
+
     );
   }
 
@@ -181,6 +190,7 @@ const SplashScreen = styled.div`
   align-items: center;
   justify-content: center;
   height: 100vh;
+  width: 100vw; /* Ensure the container takes the full width */
   background-color: #5e348b;
 
   video {
@@ -194,33 +204,53 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: flex-end; /* Push content to the bottom */
   height: 100vh;
+  width: 100vw;
   background-image: url(${BackgroundImage});
   background-size: cover;
   background-position: center;
+  background-repeat: no-repeat;
   padding: 20px;
 `;
 
 const Form = styled.div`
   background-color: white;
-  padding: 10px 8px;
+  padding: 40px 20px;
   border-radius: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 100%;
   max-width: 400px;
-  margin-bottom: 70px;
+  margin-bottom: 20px; /* Add a small margin from the bottom */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+  @media (max-width: 768px) {
+    padding: 30px 15px;
+    margin-bottom: 15px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 20px 10px;
+    margin-bottom: 10px;
+  }
 `;
+
 
 const UsernameInput = styled.input`
   width: 100%;
   padding: 15px;
   border-radius: 30px;
   border: none;
-  margin-bottom: 10px;
+  margin-bottom: 20px;
   font-size: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  @media (max-width: 480px) {
+    padding: 12px;
+    font-size: 14px;
+  }
 `;
 
 const PasswordInput = styled.input`
@@ -228,26 +258,46 @@ const PasswordInput = styled.input`
   padding: 15px;
   border-radius: 30px;
   border: none;
-  margin-bottom: 8px;
+  margin-bottom: 20px;
   font-size: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  @media (max-width: 480px) {
+    padding: 12px;
+    font-size: 14px;
+  }
 `;
 
 const LoginButton = styled.button`
   width: 100%;
   background-color: #8ce08a;
   color: black;
-  padding: 10px;
+  padding: 15px;
   border: none;
   border-radius: 30px;
   cursor: pointer;
   margin-bottom: 5px;
   font-size: 16px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+
+  &:hover {
+    background-color: #78c57a;
+  }
+
+  @media (max-width: 480px) {
+    padding: 12px;
+    font-size: 14px;
+  }
 `;
 
 const Or = styled.p`
   color: white;
-  margin-bottom: 12px;
+  margin-bottom: 20px;
   font-size: 16px;
+
+  @media (max-width: 480px) {
+    font-size: 14px;
+  }
 `;
 
 const SocialLoginButton = styled.button`
@@ -262,8 +312,23 @@ const SocialLoginButton = styled.button`
   cursor: pointer;
   margin-bottom: 10px;
   font-size: 16px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+  &:hover {
+    background-color: #e0e0e0;
+  }
+
   img {
     margin-right: 10px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 12px;
+    font-size: 14px;
+
+    img {
+      margin-right: 8px;
+    }
   }
 `;
 
@@ -275,23 +340,43 @@ const SignupBar = styled.p`
   border-radius: 30px;
   background-color: whitesmoke;
   padding: 15px;
-  border: 1px  ;
+  text-align: center;
+  border: 1px solid #ccc;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+  &:hover {
+    background-color: #f0f0f0;
+  }
+
+  @media (max-width: 480px) {
+    padding: 12px;
+    font-size: 14px;
+  }
 `;
 
 const ModalContent = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 10px;
+  padding: 20px;
+
+  @media (max-width: 480px) {
+    padding: 15px;
+  }
 `;
 
 const SignupInput = styled.input`
   width: 100%;
   padding: 10px;
-  margin-bottom: 12px;
+  margin-bottom: 20px;
   border-radius: 5px;
   border: 1px solid #cccccc;
   font-size: 16px;
+
+  @media (max-width: 480px) {
+    padding: 8px;
+    font-size: 14px;
+  }
 `;
 
 const SignupButton = styled.button`
@@ -303,6 +388,15 @@ const SignupButton = styled.button`
   border-radius: 5px;
   cursor: pointer;
   font-size: 16px;
+
+  &:hover {
+    background-color: #28b828;
+  }
+
+  @media (max-width: 480px) {
+    padding: 8px;
+    font-size: 14px;
+  }
 `;
 
 const customStyles = {
@@ -316,6 +410,12 @@ const customStyles = {
     width: '90%',
     maxWidth: '400px',
     borderRadius: '20px',
-    padding: '12px',
+    padding: '20px',
+
+    '@media (max-width: 480px)': {
+      padding: '15px',
+      width: '95%',
+    },
   },
 };
+
