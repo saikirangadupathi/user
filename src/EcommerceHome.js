@@ -1,14 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import {Button, Row, Col } from 'react-bootstrap';
+
 import Modal from 'react-modal';
+
+
 import { useNavigate } from 'react-router-dom';
 import { Filter, Search } from 'react-bootstrap-icons';
 import { ArrowLeft } from 'react-bootstrap-icons';
 import axios from 'axios';
 import styled from 'styled-components';
-import { Row, Col } from 'react-bootstrap';
+
 import { Shop, WalletFill, TagFill, PersonCircle } from 'react-bootstrap-icons';
 import Carousel from 'react-multi-carousel';
 import 'react-multi-carousel/lib/styles.css';
+
+import CartModal from './cartModal.js';
+
+import { Cart, Trash } from 'react-bootstrap-icons';
+
+import CartIcon from './cartIcon';
 
 Modal.setAppElement('#root');
 
@@ -36,6 +46,21 @@ const EcommerceHome = () => {
   const [suggestions, setSuggestions] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
 
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+
+  const [cart, setCart] = useState([]);
+
+
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  const [showBackToTop, setShowBackToTop] = useState(false);  // State for "Back to Top" button
+
+   // Reference to the levelContainer element
+   const levelContainerRef = useRef(null);
+
+
+  const [greenPointsInCart, setGreenpointsincart] = useState(0);
+
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
@@ -48,6 +73,8 @@ const EcommerceHome = () => {
         // Save shoppingSavedCart to local storage as 'cart'
         const savedCart = response.data.shoppingSavedCart || [];
         localStorage.setItem('cart', JSON.stringify(savedCart));
+        setCart(savedCart);
+        console.log('carttt..',cart);
       } catch (error) {
         console.error('Error fetching profile data:', error);
       }
@@ -69,116 +96,273 @@ const EcommerceHome = () => {
       fetchProfileData();
       fetchProducts();
     }, 3000);
+
+
+// Scroll event listener
+const handleScroll = () => {
+  const levelContainerHeight = levelContainerRef.current?.offsetHeight;
+  const scrollTop = window.scrollY;
+
+  if (levelContainerHeight) {
+    const scrolled = scrollTop > levelContainerHeight;
+    setIsScrolled(scrolled);
+    setShowBackToTop(scrolled);  // Show "Back to Top" button when scrolled
+  }
+};
+
+window.addEventListener('scroll', handleScroll);
+
+return () => {
+  window.removeEventListener('scroll', handleScroll);
+};
+
   }, []);
 
+
+   // Function to scroll back to the top
+   const handleBackToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+
+  const removeFromCart = (item) => {
+    setCart((prevCart) => {
+      const existingItem = prevCart.find((cartItem) => cartItem.name === item.name);
+      if (existingItem.quantity > 1) {
+        return prevCart.map((cartItem) =>
+          cartItem.name === item.name ? { ...cartItem, quantity: cartItem.quantity - 1 } : cartItem
+        );
+      } else {
+        return prevCart.filter((cartItem) => cartItem.name !== item.name);
+      }
+    });
+  };
+
+
+  const getTotalPrice = () => {
+    return cart.reduce((total, item) => total + item.price * item.quantity, 0).toFixed(2);
+  };
+
+  const handlePaymentClick = () => {
+    if (getTotalPrice() === '0.00') {
+      alert('Please add items to the cart.');
+    } else {
+      handleSaveCart( cart );
+      localStorage.setItem('cart', JSON.stringify( cart));
+      navigate('/EcommerceWallet', { state: { cart, greenPointsInCart } });
+
+    }
+  };
+
+  const handleSaveCart = async () => {
+    try {
+      const response = await axios.post(
+        'https://recycle-backend-lflh.onrender.com/api/saveCart',
+        { cart },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        }
+      );
+      alert(response.data.message);
+    } catch (error) {
+      console.error('Error saving cart:', error);
+      alert('Failed to save cart.');
+    }
+  };
+
   const Footer = ({ navigate }) => (
-    <Row style={{ position: 'fixed', bottom: '0', width: '100%', backgroundColor: 'white', padding: '10px 0', margin: '0' }}>
-      <Col style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', fontSize: '14px', color: '#4caf50', cursor: 'pointer' }}>
-          <Shop size={30} />
-          <span>Shopping</span>
-        </div>
-        <div onClick={() => navigate('/couponPage')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', fontSize: '14px', color: '#927AE7', cursor: 'pointer' }}>
-          <TagFill size={30} />
-          <span>Coupons</span>
-        </div>
-        <div onClick={() => navigate('/EcommerceWallet')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', fontSize: '14px', color: '#927AE7', cursor: 'pointer' }}>
-          <WalletFill size={30} />
-          <span>Wallet</span>
-        </div>
-        <div onClick={() => navigate('/profile')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', fontSize: '14px', color: '#927AE7', cursor: 'pointer' }}>
-          <PersonCircle size={30} />
-          <span>Profile</span>
-        </div>
-      </Col>
-    </Row>
+                    <Row style={{ position: 'fixed', bottom: '0', width: '100%', backgroundColor: 'white', padding: '2vh 0', margin: '0' }}>
+                          <Col style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', fontSize: '3vw', color: '#4caf50', cursor: 'pointer' }}>
+                              <Shop size="6vw" />
+                              <span style={{ marginTop: '1vh' }}>Shopping</span>
+                            </div>
+                            <div onClick={() => navigate('/couponPage')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', fontSize: '3vw', color: '#927AE7', cursor: 'pointer' }}>
+                              <TagFill size="6vw" />
+                              <span style={{ marginTop: '1vh' }}>Coupons</span>
+                            </div>
+                            <div onClick={() => navigate('/EcommerceWallet')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', fontSize: '3vw', color: '#927AE7', cursor: 'pointer' }}>
+                              <WalletFill size="6vw" />
+                              <span style={{ marginTop: '1vh' }}>Wallet</span>
+                            </div>
+                            <div onClick={() => navigate('/profile')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', fontSize: '3vw', color: '#927AE7', cursor: 'pointer' }}>
+                              <PersonCircle size="6vw" />
+                              <span style={{ marginTop: '1vh' }}>Profile</span>
+                            </div>
+                          </Col>
+                    </Row>
+
   );
 
   const styles = {
-    ecommerceHome: {
-      fontFamily: 'Arial, sans-serif',
-      backgroundColor: '#D6CDF6',
-      height: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-      overflowX: 'hidden',
-      marginBottom: '71px',
-    },
+     ecommerceHome: {
+    fontFamily: 'Arial, sans-serif',
+    backgroundColor: '#D6CDF6',
+    minHeight: '100vh',
+    display: 'flex',
+    flexDirection: 'column',
+    overflowX: 'hidden',
+    marginBottom: '10vh',
+  },
+  levelContainer: {
+    backgroundColor: '#201E43',
+    color: 'whitesmoke',
+    padding: '1vw',
+    textAlign: 'center',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    transition: 'all 0.5s ease-in-out', // Smoother and slower transition
+  },
+  searchContainer: {
+    position: isScrolled ? 'fixed' : 'relative',
+    top: isScrolled ? '0' : 'auto',
+    width: isScrolled ? '90%' : '100%',
+    left: isScrolled ? '50%' : '0',
+    transform: isScrolled ? 'translateX(-50%)' : 'none',
+    zIndex: 1100,
+    display: 'flex',
+    alignItems: 'center',
+    padding: isScrolled ? '1.5vw' : '3vw',
+    backgroundColor: '#fff',
+    boxShadow: isScrolled ? '0 4px 8px rgba(0, 0, 0, 0.3)' : '0 4px 8px rgba(0, 0, 0, 0.1)',
+    borderRadius: isScrolled ? '20px' : '0', // Border radius when fixed
+    transition: 'all 0.5s ease-in-out', // Smooth transition for style changes
+  },
+
+  backToTop: {
+    display: showBackToTop ? 'block' : 'none',
+    position: 'fixed',
+    top: '10vh',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    backgroundColor: '#4caf50',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '20px',
+    padding: '1vw 3vw',
+    cursor: 'pointer',
+    zIndex: 101,
+    fontSize: '3vw',
+    transition: 'opacity 0.5s ease-in-out', // Smooth transition for appearing and disappearing
+    opacity: showBackToTop ? 1 : 0,
+  },
     header: {
       display: 'flex',
       justifyContent: 'space-between',
-      padding: '10px',
+      padding: '1vw',
       backgroundColor: '#fff',
       boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
     },
     backButton: {
-      fontSize: '24px',
+      fontSize: '4vw', // Adjusting with vw to maintain size proportion
       border: 'none',
       background: 'none',
       cursor: 'pointer',
     },
     profileIcon: {
-      fontSize: '24px',
+      fontSize: '6vw', // Adjusting with vw to maintain size proportion
       cursor: 'pointer',
     },
-    levelContainer: {
-      backgroundColor: '#201E43',
-      color: 'whitesmoke',
-      padding: '20px',
-      textAlign: 'center',
-    },
+    
     levelInfo: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
       fontWeight: '600',
       fontFamily: 'Rhodium libre',
-      fontSize: '30px',
-      marginBottom: '10px',
-      marginRight: '65px',
+      fontSize: '5vw', // Use vw for font size to maintain proportions
+      marginBottom: '2vw',
+      width: '100%',
     },
     progressInfo: {
       color: '#92E792',
-      fontSize: '16px',
-      marginTop: '10px',
-      marginRight: '0px',
+      fontSize: '3vw', // Use vw for font size to maintain proportions
+      marginTop: '2vw',
     },
     greenPointsInfo: {
       fontFamily: 'Rhodium libre',
-      fontSize: '20px',
-      marginBottom: '10px',
+      fontSize: '4vw', // Use vw for font size to maintain proportions
+      marginLeft: 'auto', // Align to the right
+      marginRight: '5vw',
+    },
+    progressBarContainer: {
+      position: 'relative',
+      width: '100%',
+      marginTop: '3vw',
     },
     progressBar: {
       backgroundColor: 'white',
       borderRadius: '10px',
-      height: '10px',
+      height: '2vh', // Use vh to maintain height proportionate to viewport height
       overflow: 'hidden',
       width: '100%',
+      position: 'relative',
     },
     progress: {
       backgroundColor: '#92E792',
       height: '100%',
       width: `${greenPoints % 100}%`,
       transition: 'width 0.5s',
+      position: 'absolute',
+      top: 0,
+      left: 0,
+    },
+    checkpoint: {
+      position: 'absolute',
+      top: 0,
+      bottom: 0,
+      width: '1vw',
+      backgroundColor: 'yellow',
+    },
+    spinWheelButton: {
+      position: 'relative',
+      backgroundColor: '#4caf50',
+      color: 'white',
+      fontSize: '2.5vw', // Use vw to maintain font size proportion
+      borderRadius: '5px',
+      padding: '1vw',
+      marginTop: '5vw',
+      border: 'none',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    spinWheelBubble: {
+      position: 'absolute',
+      top: '-2vw',
+      right: '-2vw',
+      backgroundColor: 'red',
+      color: 'white',
+      borderRadius: '50%',
+      padding: '1vw 2vw',
+      fontSize: '2.5vw',
     },
     section: {
-      padding: '20px',
+      padding: '1vw',
       overflowY: 'auto',
       flex: 1,
     },
     categoriesContainer: {
-      display: isSearching ? 'none' : 'grid',
-      gridTemplateColumns: 'repeat(10, 1fr)',
-      gap: '10px',
+      display: 'flex',
+      flexDirection: 'row',
       overflowX: 'auto',
-      padding: '10px 0',
+      padding: '1vw 1vw',
+      whiteSpace: 'nowrap',
     },
     itemsContainer: {
       display: 'grid',
-      gridTemplateColumns: 'repeat(2, 1fr)',
-      gap: '10px',
-      padding: '10px 0',
-      height: '100%',
+      gridTemplateColumns: 'repeat(auto-fill, minmax(40vw, 1fr))', // Adjust with vw for responsiveness
+      gap: '2vw', // Spacing between grid items
+      padding: '1vw 1vw',
+      alignItems: 'start', // Align items to the start of the grid
     },
     categoryItem: {
-      minWidth: '150px',
+      flexShrink: 0, // Prevent items from shrinking
+      minWidth: '25vw', // Adjust with vw to keep proportionate size
       backgroundColor: '#fff',
       fontFamily: 'Rhodium libre',
       border: '1px solid #ccc',
@@ -186,77 +370,72 @@ const EcommerceHome = () => {
       display: 'flex',
       flexDirection: 'column',
       justifyContent: 'space-between',
-      padding: '10px',
+      padding: '2vw',
       textAlign: 'center',
       boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+      marginRight: '2vw', // Add some spacing between category items
     },
     activeCategoryItem: {
-      minWidth: '150px',
+      flexShrink: 0, // Prevent items from shrinking
+      minWidth: '25vw', // Adjust with vw to keep proportionate size
       backgroundColor: '#508C9B',
       border: '1px solid #ccc',
       borderRadius: '18px',
       display: 'flex',
       flexDirection: 'column',
       justifyContent: 'space-between',
-      padding: '9px',
+      padding: '2vw',
       textAlign: 'center',
       boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
       color: 'whitesmoke',
+      marginRight: '2vw', // Add some spacing between category items
     },
     item: {
-      height: '300px',
       backgroundColor: '#fff',
       border: '1px solid #ccc',
       borderRadius: '10px',
       display: 'flex',
       flexDirection: 'column',
       justifyContent: 'flex-end',
-      padding: '10px',
+      padding: '3vw',
       boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
       cursor: 'pointer',
+      minHeight: '50vh', // Use vh to maintain height proportionate to viewport height
     },
-
+    itemInfo: {
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
     image: {
-      width: '100%',  // Make the image take full width of the container
-      height: 'auto',  // Maintain aspect ratio
-      maxHeight: '60%', // Ensure the image doesn’t exceed 60% of the container height
-      objectFit: 'cover',  // Cover the container space while maintaining aspect ratio
-      borderRadius: '10px 10px 0 0',  // Match the top corners of the item container
-      marginBottom: 'auto',  // Push the image to the top of the container
-    },
-
-    imageitem: {
-      height: '250px',
-      backgroundColor: '#fff',
-      border: '1px solid #ccc',
-      borderRadius: '10px',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'flex-end',
-      padding: '10px',
-      boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-      cursor: 'pointer',
+      width: '100%',
+      height: 'auto',
+      maxHeight: '30vh', // Use vh to maintain height proportionate to viewport height
+      objectFit: 'cover',
+      borderRadius: '10px 10px 0 0',
+      marginBottom: 'auto',
     },
     itemName: {
       fontWeight: 'bold',
-      fontSize: '16px',
+      fontSize: '2.5vw', // Use vw to maintain font size proportion
+      marginTop: '2vh', // Spacing between image and name
+      textAlign: 'center',
     },
     price: {
-      fontSize: '14px',
+      fontSize: '3vw', // Use vw to maintain font size proportion
       color: '#757575',
+      textAlign: 'center',
+      marginTop: '1vh', // Spacing between name and price
     },
     filterSortContainer: {
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: '10px',
-    },
-
-    filterModal:{
-      maxHeight: '150px',
+      marginBottom: '2vw',
     },
     select: {
-      padding: '5px',
+      padding: '2vw',
       borderRadius: '5px',
       border: '1px solid #ccc',
     },
@@ -264,38 +443,123 @@ const EcommerceHome = () => {
       backgroundColor: showEcoFriendly ? '#CFE77A' : '#fff',
       color: showEcoFriendly ? '#36454F' : 'black',
       border: 'none',
-      padding: '10px',
+      padding: '2vw 2vw',
       borderRadius: '5px',
       cursor: 'pointer',
-      marginRight: '205px',
-      marginTop: '20px',
-      marginLeft: '0px',
-      marginBottom: '10px',
-      alignSelf: 'flex-start',
+      marginRight: 'auto',
+      marginTop: '5vw',
     },
     filterIcon: {
-      marginLeft: '10px',
-      fontSize: '24px',
+      marginLeft: '2vw',
+      fontSize: '6vw', // Use vw to maintain font size proportion
       cursor: 'pointer',
     },
-    searchContainer: {
-      position: 'relative',
-      display: 'flex',
-      alignItems: 'center',
-      padding: '10px',
-      backgroundColor: '#fff',
-      boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-    },
+    // searchContainer: {
+    //   position: 'relative',
+    //   display: 'flex',
+    //   alignItems: 'center',
+    //   padding: '3vw',
+    //   backgroundColor: '#fff',
+    //   boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+    // },
     searchInput: {
       flex: 1,
-      padding: '10px',
+      padding: '3vw',
       border: '1px solid #ccc',
       borderRadius: '5px',
     },
     searchIcon: {
-      marginLeft: '10px',
-      fontSize: '24px',
+      marginLeft: '2vw',
+      fontSize: '6vw', // Use vw to maintain font size proportion
       cursor: 'pointer',
+    },
+    levelContainer: {
+      display: 'flex',
+      justifyContent: 'space-between', // Ensures the content is spaced between
+      alignItems: 'center', // Align items vertically centered
+      backgroundColor: '#201E43',
+      color: 'whitesmoke',
+      padding: '2vw',
+    },
+    levelInfoContainer: {
+      display: 'flex',
+      flexDirection: 'column',
+      width: '77vw',
+      alignItems: 'flex-start', // Align all level info items to the start (left)
+    },
+    cartIconContainer: {
+      position: 'relative',
+      cursor: 'pointer',
+      marginLeft: 'auto', // Pushes the cart icon to the right
+      marginBottom: '2vw',
+    },
+    cartIcon: {
+      fontSize: '8vw', // Adjusting with vw to maintain size proportion
+      width: '5vw',
+      height: '5vh',
+    },
+    cartBubble: {
+      position: 'absolute',
+      top: '-2vw',
+      right: '-2vw',
+      backgroundColor: 'red',
+      color: 'white',
+      borderRadius: '50%',
+      padding: '1vw 2vw',
+      fontSize: '3vw',
+    },
+    cartItemsContainer: {
+      display: 'flex',
+      overflowX: 'scroll',
+      gap: '2vw',
+      padding: '2vw 0',
+    },
+    cartItemCard: {
+      minWidth: '40vw', // Adjust with vw to keep proportionate size
+      backgroundColor: '#fff',
+      borderRadius: '10px',
+      boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+      padding: '3vw',
+      textAlign: 'center',
+      position: 'relative',
+    },
+    cartItemImage: {
+      width: '100%',
+      height: 'auto',
+      objectFit: 'cover',
+      borderRadius: '10px',
+      marginBottom: '2vw',
+    },
+    cartItemInfo: {
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+    },
+    cartItemName: {
+      fontWeight: 'bold',
+      marginBottom: '2vw',
+      fontSize: '4vw',
+    },
+    cartItemPrice: {
+      marginBottom: '2vw',
+      fontSize: '4vw',
+    },
+    cartItemQuantity: {
+      marginBottom: '2vw',
+      fontSize: '4vw',
+    },
+    trashIcon: {
+      position: 'absolute',
+      top: '2vw',
+      right: '2vw',
+      cursor: 'pointer',
+      color: 'red',
+      fontSize: '6vw',
+    },
+    modalFooter: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      marginTop: '4vw',
     },
     suggestionsContainer: {
       position: 'absolute',
@@ -309,15 +573,52 @@ const EcommerceHome = () => {
       width: '100%',
     },
     suggestionItem: {
-      padding: '10px',
+      padding: '2vw',
       cursor: 'pointer',
       textAlign: 'left',
     },
+
+  
+
     carouselContainer: {
       display: isSearching ? 'none' : 'block',
-      marginTop: '20px',
+      marginTop: '2vw',
+      padding: '1vw', // Add some padding around the carousel for better spacing
+      overflow: 'hidden', // Hide any overflow
+    },
+    carouselItem: {
+      minWidth: '40vw', // Adjust with vw to keep proportionate size
+      backgroundColor: '#fff',
+      borderRadius: '10px',
+      boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+      padding: '3vw',
+      textAlign: 'center',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      height: '40vh', // Use vh to maintain height proportionate to viewport height
+    },
+    carouselImage: {
+      width: '100%',
+      height: 'auto',
+      maxHeight: '25vh', // Limit image height for responsiveness
+      objectFit: 'cover',
+      borderRadius: '10px 10px 0 0',
+      marginBottom: 'auto',
+    },
+    carouselItemName: {
+      fontWeight: 'bold',
+      fontSize: '4vw', // Use vw to maintain font size proportion
+      marginTop: '2vh',
+    },
+    carouselPrice: {
+      fontSize: '4vw', // Use vw to maintain font size proportion
+      color: '#757575',
+      marginTop: '1vh',
     },
   };
+  
 
   const categories = ['Electronics', 'Fashion', 'Home', 'Beauty', 'HomeLiving', 'PersonelCare', 'Stationery', 'BathroomEssentials', 'Cleaning', 'Kitchenware'];
 
@@ -429,35 +730,70 @@ const EcommerceHome = () => {
   const renderProducts = (productsList) => {
     if (productsList.length === 0) {
       return (
-        <div style={{ textAlign: 'center', marginTop: '20px', fontSize: '18px', color: '#757575' }}>
+        <div style={{ textAlign: 'center', marginTop: '20px', fontSize: '13px', color: '#757575' }}>
           Not found
         </div>
       );
     }
-
-    return productsList.map((product, index) => (
-      <div
-        key={index}
-        style={styles.item}
-        onClick={() => handleProductClick(product, index)}
-      >
-        <div style={styles.itemInfo}>
-        <img 
-                  src={product.images[0]} 
-                  alt={product.name} 
-                  style={styles.image} 
-                />
-          <div style={styles.itemName}>{product.name}</div>
-          <div style={styles.price}>Price: ₹{product.price}</div>
-          {product.ecoFriendly && (
-            <div style={styles.price}>
-              Green Points: {product.greenPoints}
+  
+    return productsList.map((product, index) => {
+      // Calculate the discounted price
+      const discountedPrice = product.price - (product.price * (product.discount / 100));
+  
+      // Calculate the average rating from reviews
+      const averageRating = product.reviews.length > 0
+        ? (product.reviews.reduce((acc, review) => acc + review.rating, 0) / product.reviews.length).toFixed(1)
+        : 0;
+  
+      // Create an array of stars for the rating
+      const starRating = [];
+      for (let i = 1; i <= 5; i++) {
+        starRating.push(
+          <span key={i} style={{ color: i <= averageRating ? '#FFD700' : '#CCCCCC', fontSize: '3vw' }}>★</span>
+        );
+      }
+  
+      return (
+        <div
+          key={index}
+          style={styles.item}
+          onClick={() => handleProductClick(product, index)}
+        >
+          <div style={styles.itemInfo}>
+            <img 
+              src={product.images[0]} 
+              alt={product.name} 
+              style={styles.image} 
+            />
+            <div style={styles.itemName}>{product.name}</div>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '1vh' }}>
+              <div style={{ fontSize: '3vw',fontWeight: 'light' }}>
+                M.R.P <span style={{ textDecoration: 'line-through',color: '#72A0C1'}}>₹ {product.price} </span>
+              </div>
+              <div style={{ marginLeft: '1vw', color: 'black', fontSize: '2.5vw',top: 0, fontWeight: 'bold' }}>
+                ₹<span style = {{marginLeft: '1vw', color: 'black', fontSize: '3.5vw' }}>{discountedPrice.toFixed(2)}</span>
+              </div>
             </div>
-          )}
+            <div style={{ display: 'flex', alignItems: 'center', marginTop: '1vh' }}>
+              <span style={{ fontSize: '3vw', color: '#757575', marginRight: '1vw' }}>Color:</span>
+              <span style={{ fontSize: '3vw', color: '#36454F' }}>{product.attributes.color}</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', marginTop: '1vh' }}>
+              <span style={{ fontSize: '3vw', color: '#757575', marginRight: '1vw' }}>Rating:</span>
+              {starRating}
+              <span style={{ marginLeft: '1vw', fontSize: '2.5vw', color: '#757575' }}>({product.reviews.length})</span>
+            </div>
+            {product.ecoFriendly && (
+              <div style={styles.price}>
+                Green Points: {product.greenPoints}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-    ));
+      );
+    });
   };
+  
 
   if (loading) {
     return (
@@ -474,44 +810,74 @@ const EcommerceHome = () => {
 
   return (
     <div style={styles.ecommerceHome}>
-      <div style={styles.levelContainer}>
-        <span style={styles.levelInfo}>
-          <span role="img" aria-label="coins">🪙</span> Level - {level}
-        </span>
-        <span style={styles.greenPointsInfo}>
-          Green Points: {greenPoints}
-        </span>
-        <div style={styles.progressBar}>
-          <div style={styles.progress}></div>
-        </div>
-        <span style={styles.progressInfo}>
-          {100 - (greenPoints % 100)} Points to next level
-        </span>
-      </div>
-      <div style={styles.searchContainer}>
-        {isSearching && <ArrowLeft onClick={resetSearch} style={{ cursor: 'pointer', color: 'black', marginRight: '10px' }} size={30} />}
-        <input
-          type="text"
-          placeholder="Search products, brands, categories..."
-          value={searchQuery}
-          onChange={handleInputChange}
-          style={styles.searchInput}
-        />
-        <Search style={styles.searchIcon} onClick={handleSearch} />
-        {suggestions.length > 0 && (
-          <div style={styles.suggestionsContainer}>
-            {suggestions.map((suggestion, index) => (
-              <div
-                key={index}
-                style={styles.suggestionItem}
-                onClick={() => handleSuggestionClick(suggestion)}
-              >
-                {suggestion}
-              </div>
-            ))}
+      <div id="levelContainer" ref={levelContainerRef} style={styles.levelContainer}>
+        <div style={styles.levelInfoContainer}>
+          <span style={styles.levelInfo}>
+            <span role="img" aria-label="coins">🪙</span> Level - {level}
+            <span style={styles.greenPointsInfo}>
+              Green Points: {greenPoints}
+            </span>
+          </span>
+          <div style={styles.progressBarContainer}>
+            <div style={styles.progressBar}>
+              <div style={styles.progress}></div>
+              {/* Checkpoints at every 25% */}
+              <div style={{ ...styles.checkpoint, left: '33%' }}></div>
+              <div style={{ ...styles.checkpoint, left: '68%' }}></div>
+              <div style={{ ...styles.checkpoint, left: '100%' }}></div>
+            </div>
           </div>
-        )}
+          <span style={styles.progressInfo}>
+            {100 - (greenPoints % 100)} Points to next level
+          </span>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div style={styles.cartIconContainer} onClick={() => setModalIsOpen(true)}>
+              <CartIcon cart={cart} setModalIsOpen={setModalIsOpen} />
+              {cart.length > 0 && <span style={styles.cartBubble}>{cart.length}</span>}
+            </div>
+            <button style={styles.spinWheelButton}>
+              Spin Wheel
+              {/* Bubble count for checkpoints crossed */}
+              {Math.floor((greenPoints % 100) / 33.3) > 0 && (
+                <span style={styles.spinWheelBubble}>
+                  {Math.floor((greenPoints % 100) / 33.3)}
+                </span>
+              )}
+            </button>
+          </div>
       </div>
+
+      <div style={styles.searchContainer}>
+      {isSearching && <ArrowLeft onClick={resetSearch} style={{ cursor: 'pointer', color: 'black', marginRight: '10px' }} size={30} />}
+      <input
+        type="text"
+        placeholder="Search products, brands, categories..."
+        value={searchQuery}
+        onChange={handleInputChange}
+        style={styles.searchInput}
+      />
+      <Search style={styles.searchIcon} onClick={handleSearch} />
+      {suggestions.length > 0 && (
+        <div style={styles.suggestionsContainer}>
+          {suggestions.map((suggestion, index) => (
+            <div
+              key={index}
+              style={styles.suggestionItem}
+              onClick={() => handleSuggestionClick(suggestion)}
+            >
+              {suggestion}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+
+    <button style={styles.backToTop} onClick={handleBackToTop}>
+      Back to Top
+    </button>
+
+
       <section style={styles.section}>
         <div style={styles.categoriesContainer}>
           {categories.map((category, index) => (
@@ -533,30 +899,29 @@ const EcommerceHome = () => {
           </span>
         </div>
         <div style={styles.carouselContainer}>
-        <Carousel 
-              responsive={{ 
-                superLargeDesktop: { breakpoint: { max: 4000, min: 3000 }, items: 5 }, 
-                desktop: { breakpoint: { max: 3000, min: 1024 }, items: 3 }, 
-                tablet: { breakpoint: { max: 1024, min: 464 }, items: 2 }, 
-                mobile: { breakpoint: { max: 464, min: 0 }, items: 1 } 
-              }}
-              autoPlay={true} 
-              autoPlaySpeed={3000} // 5000 ms = 5 seconds
-              infinite={true} // Makes the carousel loop infinitely
-              // showDots={true} // Optional: Displays dots for navigation
-            >
-              {products.map((product, index) => (
-                <div key={index} style={styles.item}>
-                  <img 
-                    src={product.images[0]} 
-                    alt={product.name} 
-                    style={styles.imageitem} 
-                  />
-                  <div style={styles.itemName}>{product.name}</div>
-                  <div style={styles.price}>Price: ₹{product.price}</div>
-                </div>
-              ))}
-            </Carousel>
+              <Carousel
+                    responsive={{
+                      superLargeDesktop: { breakpoint: { max: 4000, min: 3000 }, items: 5 },
+                      desktop: { breakpoint: { max: 3000, min: 1024 }, items: 2 },
+                      tablet: { breakpoint: { max: 1024, min: 464 }, items: 1 },
+                      mobile: { breakpoint: { max: 464, min: 0 }, items: 1 }
+                    }}
+                    autoPlay={true}
+                    autoPlaySpeed={3000} // 3000 ms = 3 seconds
+                    infinite={true} // Makes the carousel loop infinitely
+                  >
+                    {products.map((product, index) => (
+                      <div key={index} style={styles.carouselItem}>
+                        <img 
+                          src={product.images[0]} 
+                          alt={product.name} 
+                          style={styles.carouselImage} 
+                        />
+                        <div style={styles.carouselItemName}>{product.name}</div>
+                        <div style={styles.carouselPrice}>Price: ₹{product.price}</div>
+                      </div>
+                    ))}
+                  </Carousel>
         </div>
         <div style={styles.itemsContainer}>
           {searchResults.length > 0 ? renderProducts(searchResults) : renderProducts(getFilteredAndSortedItems())}
@@ -592,6 +957,17 @@ const EcommerceHome = () => {
           </select>
         </div>
       </Modal>
+      <CartModal
+          modalIsOpen={modalIsOpen}
+          setModalIsOpen={setModalIsOpen}
+          cart={cart}
+          getTotalPrice={getTotalPrice}
+          greenPointsInCart={greenPointsInCart}
+          removeFromCart={removeFromCart}
+          handlePaymentClick={handlePaymentClick}
+          handleSaveCart={handleSaveCart}
+        />
+
     </div>
   );
 };
