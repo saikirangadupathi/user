@@ -1,41 +1,21 @@
-import React, { useState, useEffect, useRef  } from 'react';
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
-import { useGeolocated } from 'react-geolocated';
-import 'leaflet/dist/leaflet.css';
+import React, { useState, useEffect, useRef } from 'react';
+import mapboxgl from 'mapbox-gl';
 import { Input, Button } from 'antd';
 import { AimOutlined, SearchOutlined, EnvironmentOutlined } from '@ant-design/icons';
+import { useGeolocated } from 'react-geolocated';
 import { useNavigate } from 'react-router-dom';
-import L from 'leaflet';
-import PinLocationIcon from './pin.png';
+import 'mapbox-gl/dist/mapbox-gl.css';
 
-
-const LocationMarker = ({ setLocation }) => {
-  const map = useMapEvents({
-    moveend() {
-      const center = map.getCenter();
-      setLocation(center);
-    },
-  });
-
-  return null;
-};
-
-
-const deviceIcon = new L.Icon({
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  iconSize: [30, 25],
-  iconAnchor: [7.5, 7.5],
-  className: 'device-location-marker',
-});
-
+mapboxgl.accessToken = 'pk.eyJ1IjoiZ3NhaXRlamEwMDEiLCJhIjoiY2x5a3MyeXViMDl3NjJqcjc2OHQ3NTVoNiJ9.b5q6xpWN2yqeaKTaySgcBQ'; // Replace with your Mapbox token
 
 const LocationPicker = ({ onConfirmLocation }) => {
   const [location, setLocation] = useState(null);
   const [deviceLocation, setDeviceLocation] = useState(null);
   const [address, setAddress] = useState('');
   const [enablePickUp, setEnablePickUp] = useState(false);
-  const navigate = useNavigate();
   const mapRef = useRef(null);
+  const mapInstance = useRef(null); // Ref to store the map instance
+  const navigate = useNavigate();
 
   const { coords, isGeolocationAvailable, isGeolocationEnabled } = useGeolocated({
     positionOptions: {
@@ -45,11 +25,76 @@ const LocationPicker = ({ onConfirmLocation }) => {
   });
 
   useEffect(() => {
+    if (mapInstance.current) {
+      mapInstance.current.remove(); // Clean up the previous map instance if it exists
+    }
+
+    mapInstance.current = new mapboxgl.Map({
+      container: mapRef.current, // Reference to the map container
+      style: 'mapbox://styles/mapbox/streets-v11', // Replace with your preferred Mapbox style
+      center: location ? [location.lng, location.lat] : [78.476, 17.366], // Default center to a place if no location is set
+      zoom: 13,
+    });
+
+    mapInstance.current.on('moveend', () => {
+      const newCenter = mapInstance.current.getCenter();
+      setLocation({ lat: newCenter.lat, lng: newCenter.lng });
+    });
+
+    mapInstance.current.on('style.load', () => {
+      const layers = mapInstance.current.getStyle().layers;
+      const labelLayerId = layers.find(
+        (layer) => layer.type === 'symbol' && layer.layout['text-field']
+      ).id;
+
+      mapInstance.current.addLayer(
+        {
+          id: 'add-3d-buildings',
+          source: 'composite',
+          'source-layer': 'building',
+          filter: ['==', 'extrude', 'true'],
+          type: 'fill-extrusion',
+          minzoom: 14,
+          paint: {
+            'fill-extrusion-color': '#aaa',
+            'fill-extrusion-height': [
+              'interpolate',
+              ['linear'],
+              ['zoom'],
+              15,
+              0,
+              15.05,
+              ['get', 'height'],
+            ],
+            'fill-extrusion-base': [
+              'interpolate',
+              ['linear'],
+              ['zoom'],
+              15,
+              0,
+              15.05,
+              ['get', 'min_height'],
+            ],
+            'fill-extrusion-opacity': 0.6,
+          },
+        },
+        labelLayerId
+      );
+    });
+
     if (coords) {
       const newLocation = { lat: coords.latitude, lng: coords.longitude };
       setLocation(newLocation);
       setDeviceLocation(newLocation);
+      mapInstance.current.setCenter([newLocation.lng, newLocation.lat]);
     }
+
+    return () => {
+      if (mapInstance.current) {
+        mapInstance.current.remove(); // Cleanup map on component unmount
+        mapInstance.current = null; // Ensure the map instance is cleared
+      }
+    };
   }, [coords]);
 
   const handleSearch = (value) => {
@@ -62,10 +107,7 @@ const LocationPicker = ({ onConfirmLocation }) => {
       const newLocation = { lat: coords.latitude, lng: coords.longitude };
       setLocation(newLocation);
       setDeviceLocation(newLocation);
-      const map = mapRef.current;
-      if (map) {
-        map.setView(newLocation, map.getZoom());
-      }
+      mapInstance.current.setCenter([newLocation.lng, newLocation.lat]);
     }
   };
 
@@ -85,15 +127,6 @@ const LocationPicker = ({ onConfirmLocation }) => {
     navigate('/sell-buy');
   };
 
-  const customIcon = new L.Icon({
-    iconUrl: require('leaflet/dist/images/marker-icon.png'),
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
-    shadowSize: [41, 41],
-  });
-
   const pulseStyle = {
     width: '20px',
     height: '20px',
@@ -106,9 +139,6 @@ const LocationPicker = ({ onConfirmLocation }) => {
     animation: 'pulse 1.5s infinite',
   };
 
-
-  const mapCenter = location ? [location.lat, location.lng] : [17.366, 78.476];
-
   return (
     <div style={{ width: '100%', height: '100vh', position: 'relative' }}>
       <div style={styles.searchContainer}>
@@ -120,29 +150,7 @@ const LocationPicker = ({ onConfirmLocation }) => {
           style={styles.searchInput}
         />
       </div>
-      <MapContainer
-        center={mapCenter}
-        zoom={13}
-        style={{ width: '100%', height: 'calc(100vh - 200px)' }}
-        whenCreated={(mapInstance) => {
-          mapRef.current = mapInstance;
-          setTimeout(() => {
-            mapInstance.invalidateSize();
-            if (location) {
-              mapInstance.setView(location, mapInstance.getZoom());
-            }
-          }, 0);
-        }}
-      >
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        />
-        {deviceLocation && (
-          <Marker position={deviceLocation} icon={deviceIcon} />
-        )}
-        <LocationMarker setLocation={setLocation} />
-      </MapContainer>
+      <div id="map" ref={mapRef} style={{ width: '100%', height: 'calc(100vh - 200px)' }}></div>
       <div style={styles.centerMarker}>
         <img
           src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png"
