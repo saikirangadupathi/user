@@ -108,7 +108,7 @@ const Login = () => {
               objectFit: 'cover' 
             }}
           >
-            <source src='https://gadupathi.s3.ap-south-1.amazonaws.com/recyleSplashScreen+(1).mp4' type="video/mp4" />
+            <source src='https://gadupathi.s3.ap-south-1.amazonaws.com/recyleSplashScreen+(2).mp4' type="video/mp4" />
           </video>
         </SplashScreen>
 
