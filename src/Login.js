@@ -7,7 +7,7 @@ import LocationPicker from './LocationPicker';
 import Modal from 'react-modal';
 import RecyclingSymbol from './recycling.png'; // Adjust the path accordingly
 import BackgroundImage from './greenCyclelogo.jpg';
-import SplashScreenVideo from './recyleSplashScreen.MP4';
+import SplashScreenVideo from './recyleSplashScreen.mp4';
 import GoogleIcon from './google.png';
 
 Modal.setAppElement('#root'); // Required for accessibility
@@ -108,7 +108,7 @@ const Login = () => {
               objectFit: 'cover' 
             }}
           >
-            <source src='https://gadupathi.s3.ap-south-1.amazonaws.com/recyleSplashScreen+(2).mp4' type="video/mp4" />
+            <source src= {SplashScreenVideo} type="video/mp4" />
           </video>
         </SplashScreen>
 
